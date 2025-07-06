@@ -76,7 +76,3 @@ The application uses SQLite with the following tables:
 - Drivers
 - Customers
 - Rides
-
-## Note
-
-This is a simplified student project and doesn't include real payment processing or actual geolocation services. The location data is simulated for educational purposes.
