@@ -1,0 +1,132 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Driver Dashboard</h2>
+    <p>Welcome back, {{ session.name }}!</p>
+    
+    <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+        <div>
+            <h3>Total Earnings</h3>
+            <p style="font-size: 24px; font-weight: bold;">₹{{ "%.2f"|format(total_earnings) }}</p>
+        </div>
+        
+        <div>
+            <h3>Average Rating</h3>
+            <div class="star-rating">
+                {% for i in range(1, 6) %}
+                    {% if i <= driver.avg_rating %}
+                        <span class="star filled">★</span>
+                    {% else %}
+                        <span class="star">★</span>
+                    {% endif %}
+                {% endfor %}
+                <span>({{ driver.avg_rating }})</span>
+            </div>
+        </div>
+        
+        <div>
+            <h3>Total Rides</h3>
+            <p style="font-size: 24px; font-weight: bold;">{{ driver.total_rides }}</p>
+        </div>
+        
+        <div>
+            <h3>Status</h3>
+            <form method="post" action="{{ url_for('toggle_availability') }}">
+                {% if driver.is_available %}
+                    <button type="submit" class="btn" style="background-color: green; color: white;">Available</button>
+                {% else %}
+                    <button type="submit" class="btn" style="background-color: red; color: white;">Unavailable</button>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <div>
+        <h3>Update Your Location</h3>
+        <p>Click the button below to update your location to your current position:</p>
+        <form method="post" action="{{ url_for('update_location') }}">
+            <input type="hidden" name="lat" id="location-lat" value="0">
+            <input type="hidden" name="lng" id="location-lng" value="0">
+            <button type="button" id="get-location-btn" class="btn">Get Current Location</button>
+            <button type="submit" id="update-location-btn" class="btn" style="display: none;">Update Location</button>
+        </form>
+        <p id="location-status"></p>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Your Ride History</h3>
+    
+    {% if rides %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Rating</th>
+                    <th>Feedback</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ride in rides %}
+                <tr>
+                    <td>{{ ride.ride_date }}</td>
+                    <td>{{ ride.pickup_location }}</td>
+                    <td>{{ ride.dropoff_location }}</td>
+                    <td>{{ ride.customer_name }}</td>
+                    <td>₹{{ "%.2f"|format(ride.amount) }}</td>
+                    <td>{{ ride.status }}</td>
+                    <td>
+                        {% if ride.rating > 0 %}
+                            {% for i in range(1, 6) %}
+                                {% if i <= ride.rating %}
+                                    <span class="star filled">★</span>
+                                {% else %}
+                                    <span class="star">★</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            Not rated
+                        {% endif %}
+                    </td>
+                    <td>{{ ride.feedback or 'No feedback' }}</td>
+                    <td>
+                        <a href="{{ url_for('view_ride', ride_id=ride.id) }}" class="btn">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You haven't completed any rides yet.</p>
+    {% endif %}
+</div>
+
+<script>
+    // Get current location
+    document.getElementById('get-location-btn').addEventListener('click', function() {
+        const locationStatus = document.getElementById('location-status');
+        locationStatus.textContent = 'Getting your location...';
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('location-lat').value = position.coords.latitude;
+                document.getElementById('location-lng').value = position.coords.longitude;
+                
+                locationStatus.textContent = `Location obtained: ${position.coords.latitude}, ${position.coords.longitude}`;
+                document.getElementById('update-location-btn').style.display = 'inline-block';
+            }, function(error) {
+                locationStatus.textContent = 'Error getting location: ' + error.message;
+            });
+        } else {
+            locationStatus.textContent = 'Geolocation is not supported by this browser.';
+        }
+    });
+</script>
+{% endblock %}

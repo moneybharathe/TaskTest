@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<h1>Search Products</h1>
+<hr>
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('search') }}" class="search-form">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.query.label(class="form-control-label") }}
+                        <div class="input-group">
+                            {{ form.query(class="form-control search-input", placeholder="Search for products...") }}
+                            <div class="input-group-append">
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </div>
+                        <div id="search-suggestions" class="search-suggestions"></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {{ form.category.label(class="form-control-label") }}
+                        {{ form.category(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {{ form.min_price.label(class="form-control-label") }}
+                        {{ form.min_price(class="form-control") }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        {{ form.max_price.label(class="form-control-label") }}
+                        {{ form.max_price(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="search-tips mb-5">
+    <h4>Search Tips</h4>
+    <ul>
+        <li>Type at least 2 characters to see auto-suggestions</li>
+        <li>Use category filter to narrow down results</li>
+        <li>Set price range for more specific results</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('.search-input');
+    const suggestionsContainer = document.getElementById('search-suggestions');
+    
+    // Handle input for auto-suggestions
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (query.length >= 2) {
+            fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsContainer.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            const suggestion = document.createElement('div');
+                            suggestion.className = 'suggestion-item';
+                            suggestion.innerHTML = `<strong>${item.name}</strong> <span class="text-muted">(${item.category})</span>`;
+                            
+                            suggestion.addEventListener('click', function() {
+                                searchInput.value = item.name;
+                                suggestionsContainer.innerHTML = '';
+                                document.querySelector('.search-form').submit();
+                            });
+                            
+                            suggestionsContainer.appendChild(suggestion);
+                        });
+                        suggestionsContainer.style.display = 'block';
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    suggestionsContainer.style.display = 'none';
+                });
+        } else {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.search-input') && !event.target.closest('.search-suggestions')) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Rate Your Driver</h2>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h3>How was your ride with {{ ride.driver_name }}?</h3>
+        <p>From: {{ ride.pickup_location }} → To: {{ ride.dropoff_location }}</p>
+    </div>
+    
+    <form action="{{ url_for('rate_driver', ride_id=ride.id) }}" method="post">
+        <div class="form-group" style="text-align: center;">
+            <div class="star-rating">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            <input type="hidden" name="rating" id="rating" value="5" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="feedback">Feedback (Optional)</label>
+            <textarea name="feedback" id="feedback" class="form-control" rows="4"></textarea>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <button type="submit" class="btn">Submit Rating</button>
+            <a href="{{ url_for('customer_dashboard') }}" class="btn">Skip</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Star rating functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const stars = document.querySelectorAll('.star');
+        const ratingInput = document.getElementById('rating');
+        
+        // Set initial rating
+        updateStars(5);
+        
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const rating = this.getAttribute('data-rating');
+                ratingInput.value = rating;
+                updateStars(rating);
+            });
+        });
+        
+        function updateStars(rating) {
+            stars.forEach(star => {
+                const starRating = star.getAttribute('data-rating');
+                if (starRating <= rating) {
+                    star.classList.add('filled');
+                } else {
+                    star.classList.remove('filled');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

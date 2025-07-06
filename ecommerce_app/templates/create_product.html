@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+{% block title %}
+    {% if legend == 'Update Product' %}
+        Edit Product
+    {% else %}
+        New Product
+    {% endif %}
+{% endblock %}
+{% block content %}
+<div class="content-section">
+    <form method="POST" action="" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">{{ legend }}</legend>
+            <div class="form-group">
+                {{ form.name.label(class="form-control-label") }}
+                {% if form.name.errors %}
+                    {{ form.name(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.name(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.description.label(class="form-control-label") }}
+                {% if form.description.errors %}
+                    {{ form.description(class="form-control form-control-lg is-invalid", rows=5) }}
+                    <div class="invalid-feedback">
+                        {% for error in form.description.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.description(class="form-control form-control-lg", rows=5) }}
+                {% endif %}
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.base_price.label(class="form-control-label") }}
+                        {% if form.base_price.errors %}
+                            {{ form.base_price(class="form-control form-control-lg is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.base_price.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.base_price(class="form-control form-control-lg") }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.stock.label(class="form-control-label") }}
+                        {% if form.stock.errors %}
+                            {{ form.stock(class="form-control form-control-lg is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.stock.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.stock(class="form-control form-control-lg") }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                {{ form.category_id.label(class="form-control-label") }}
+                {% if form.category_id.errors %}
+                    {{ form.category_id(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.category_id.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.category_id(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.image.label(class="form-control-label") }}
+                <div class="custom-file">
+                    {{ form.image(class="custom-file-input") }}
+                    <label class="custom-file-label" for="image">Choose file...</label>
+                </div>
+                {% if form.image.errors %}
+                    {% for error in form.image.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </fieldset>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('products') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Display file name when selected
+    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+</script>
+{% endblock %}

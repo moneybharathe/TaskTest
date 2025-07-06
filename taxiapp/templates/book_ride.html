@@ -1,0 +1,200 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Book a Ride</h2>
+    
+    <form id="ride-form" action="{{ url_for('book_ride') }}" method="post">
+        <div class="form-group">
+            <label for="pickup_location">Pickup Location</label>
+            <input type="text" name="pickup_location" id="pickup_location" class="form-control" required>
+            <input type="hidden" name="pickup_lat" id="pickup_lat" value="0">
+            <input type="hidden" name="pickup_lng" id="pickup_lng" value="0">
+        </div>
+        
+        <div class="form-group">
+            <label for="dropoff_location">Drop-off Location</label>
+            <input type="text" name="dropoff_location" id="dropoff_location" class="form-control" required>
+            <input type="hidden" name="dropoff_lat" id="dropoff_lat" value="0">
+            <input type="hidden" name="dropoff_lng" id="dropoff_lng" value="0">
+        </div>
+        
+        <button type="button" id="find-location-btn" class="btn">Find My Location</button>
+        <p id="location-status"></p>
+        
+        <div id="map" style="height: 300px; margin: 20px 0; display: none;"></div>
+        
+        <div class="form-group">
+            <label>Estimated Distance: <span id="distance-display">0</span> km</label>
+        </div>
+        
+        <div class="form-group">
+            <label>Estimated Fare: ₹<span id="fare-display">50</span></label>
+        </div>
+        
+        <div id="drivers-container" style="display: none;">
+            <h3>Available Drivers</h3>
+            <div class="form-group">
+                <label for="driver_id">Select Driver</label>
+                <select name="driver_id" id="driver_id" class="form-control" required>
+                    <option value="">-- Select a driver --</option>
+                    {% for driver in available_drivers %}
+                        <option value="{{ driver.id }}">
+                            {{ driver.name }} ({{ driver.vehicle_model }}, {{ driver.vehicle_number }})
+                            - Rating: {{ driver.avg_rating }}/5 ({{ driver.total_rides }} rides)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn">Book Now</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Simple location service implementation
+    
+    // Mock location data - Including Palani and other locations with reasonable distances
+    const mockLocations = {
+        'downtown': {lat: 12.9716, lng: 77.5946},
+        'airport': {lat: 13.1989, lng: 77.7068},      // ~25km from downtown
+        'central mall': {lat: 12.9344, lng: 77.6113}, // ~5km from downtown
+        'tech park': {lat: 12.9698, lng: 77.7499},    // ~15km from downtown
+        'university': {lat: 13.0159, lng: 77.5699},   // ~7km from downtown
+        'railway station': {lat: 12.9780, lng: 77.5767}, // ~2km from downtown
+        'bus terminal': {lat: 12.9550, lng: 77.6095},  // ~4km from downtown
+        'palani': {lat: 10.4502, lng: 77.5217},       // Actual Palani coordinates in Tamil Nadu
+        'coimbatore': {lat: 11.0168, lng: 76.9558},   // Another Tamil Nadu city
+        'madurai': {lat: 9.9252, lng: 78.1198}        // Another Tamil Nadu city
+    };
+    
+    // Find user's location
+    document.getElementById('find-location-btn').addEventListener('click', function() {
+        const locationStatus = document.getElementById('location-status');
+        locationStatus.textContent = 'Getting your location...';
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                document.getElementById('pickup_lat').value = position.coords.latitude;
+                document.getElementById('pickup_lng').value = position.coords.longitude;
+                document.getElementById('pickup_location').value = 'Current Location';
+                
+                locationStatus.textContent = `Location obtained: ${position.coords.latitude}, ${position.coords.longitude}`;
+                
+                // Calculate distance and fare after getting current location
+                calculateDistanceAndFare();
+                
+                document.getElementById('drivers-container').style.display = 'block';
+            }, function(error) {
+                locationStatus.textContent = 'Error getting location: ' + error.message;
+            });
+        } else {
+            locationStatus.textContent = 'Geolocation is not supported by this browser.';
+        }
+    });
+    
+    // Simple location search
+    function searchLocation(inputElement, latElement, lngElement) {
+        const searchTerm = inputElement.value.toLowerCase();
+        let found = false;
+        
+        for (const [key, coords] of Object.entries(mockLocations)) {
+            if (key.includes(searchTerm)) {
+                latElement.value = coords.lat;
+                lngElement.value = coords.lng;
+                found = true;
+                break;
+            }
+        }
+        
+        // Auto-fill for "palani" which is a key location in this project
+        if (searchTerm.includes('palani') && !found) {
+            latElement.value = mockLocations['palani'].lat;
+            lngElement.value = mockLocations['palani'].lng;
+            found = true;
+        }
+        
+        return found;
+    }
+    
+    // Calculate distance and fare
+    function calculateDistanceAndFare() {
+        const pickupLat = parseFloat(document.getElementById('pickup_lat').value) || 0;
+        const pickupLng = parseFloat(document.getElementById('pickup_lng').value) || 0;
+        const dropoffLat = parseFloat(document.getElementById('dropoff_lat').value) || 0;
+        const dropoffLng = parseFloat(document.getElementById('dropoff_lng').value) || 0;
+        
+        if (pickupLat && pickupLng && dropoffLat && dropoffLng) {
+            // Simplified distance calculation (Haversine formula)
+            const R = 6371; // Earth's radius in km
+            const dLat = (dropoffLat - pickupLat) * Math.PI / 180;
+            const dLng = (dropoffLng - pickupLng) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(pickupLat * Math.PI / 180) * Math.cos(dropoffLat * Math.PI / 180) * 
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            
+            document.getElementById('distance-display').textContent = distance.toFixed(2);
+            
+            // Calculate fare
+            const baseFare = 50;
+            const perKmRate = 10;
+            // Ensure distance is reasonable (limit to 1000km to prevent extreme values)
+            const cappedDistance = Math.min(distance, 1000);
+            const fare = baseFare + (cappedDistance * perKmRate);
+            document.getElementById('fare-display').textContent = fare.toFixed(2);
+            
+            document.getElementById('drivers-container').style.display = 'block';
+        }
+    }
+    
+    // Event listeners
+    document.getElementById('pickup_location').addEventListener('blur', function() {
+        if (searchLocation(this, document.getElementById('pickup_lat'), document.getElementById('pickup_lng'))) {
+            calculateDistanceAndFare();
+        }
+    });
+    
+    document.getElementById('pickup_location').addEventListener('input', function() {
+        if (this.value.toLowerCase().includes('palani')) {
+            searchLocation(this, document.getElementById('pickup_lat'), document.getElementById('pickup_lng'));
+            calculateDistanceAndFare();
+        }
+    });
+    
+    document.getElementById('dropoff_location').addEventListener('blur', function() {
+        if (searchLocation(this, document.getElementById('dropoff_lat'), document.getElementById('dropoff_lng'))) {
+            calculateDistanceAndFare();
+        }
+    });
+    
+    document.getElementById('dropoff_location').addEventListener('input', function() {
+        if (this.value.toLowerCase().includes('palani')) {
+            searchLocation(this, document.getElementById('dropoff_lat'), document.getElementById('dropoff_lng'));
+            calculateDistanceAndFare();
+        }
+    });
+    
+    // Auto-calculate when any of the hidden lat/lng fields change
+    ['pickup_lat', 'pickup_lng', 'dropoff_lat', 'dropoff_lng'].forEach(function(fieldId) {
+        document.getElementById(fieldId).addEventListener('change', calculateDistanceAndFare);
+    });
+    
+    // Ensure form has correct values before submission
+    document.getElementById('ride-form').addEventListener('submit', function(event) {
+        const pickupLat = parseFloat(document.getElementById('pickup_lat').value);
+        const pickupLng = parseFloat(document.getElementById('pickup_lng').value);
+        const dropoffLat = parseFloat(document.getElementById('dropoff_lat').value);
+        const dropoffLng = parseFloat(document.getElementById('dropoff_lng').value);
+        
+        if (!pickupLat || !pickupLng || !dropoffLat || !dropoffLng) {
+            event.preventDefault();
+            alert('Please enter valid pickup and drop-off locations');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

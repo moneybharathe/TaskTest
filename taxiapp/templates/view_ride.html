@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Ride Details</h2>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div>
+            <h3>Ride ID: {{ ride.id }}</h3>
+            <p><strong>Date:</strong> {{ ride.ride_date }}</p>
+            <p><strong>Status:</strong> {{ ride.status }}</p>
+        </div>
+        
+        <div>
+            <h3>Ride Amount</h3>
+            <p style="font-size: 24px; font-weight: bold;">₹{{ "%.2f"|format(ride.amount) }}</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div style="width: 45%;">
+            <h3>Locations</h3>
+            <p><strong>From:</strong> {{ ride.pickup_location }}</p>
+            <p><strong>To:</strong> {{ ride.dropoff_location }}</p>
+        </div>
+        
+        {% if session.user_type == 'customer' %}
+        <div style="width: 45%;">
+            <h3>Driver Information</h3>
+            <p><strong>Name:</strong> {{ ride.driver_name }}</p>
+            <p><strong>Vehicle:</strong> {{ ride.vehicle_model }} ({{ ride.vehicle_number }})</p>
+            <p><strong>Contact:</strong> {{ ride.driver_phone }}</p>
+        </div>
+        {% else %}
+        <div style="width: 45%;">
+            <h3>Customer Information</h3>
+            <p><strong>Name:</strong> {{ ride.customer_name }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if ride.status == 'paid' or ride.status == 'completed' %}
+    <div>
+        <h3>Rating and Feedback</h3>
+        {% if ride.rating > 0 %}
+            <div class="star-rating">
+                {% for i in range(1, 6) %}
+                    {% if i <= ride.rating %}
+                        <span class="star filled">★</span>
+                    {% else %}
+                        <span class="star">★</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <p><strong>Feedback:</strong> {{ ride.feedback or 'No feedback provided' }}</p>
+        {% else %}
+            <p>Not yet rated</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div style="text-align: center; margin-top: 20px;">
+        {% if session.user_type == 'customer' %}
+            {% if ride.status == 'pending' %}
+                <form method="post" action="{{ url_for('complete_ride_customer', ride_id=ride.id) }}">
+                    <button type="submit" class="btn">Complete Ride</button>
+                </form>
+            {% elif ride.status == 'completed' %}
+                <a href="{{ url_for('payment', ride_id=ride.id) }}" class="btn">Make Payment</a>
+            {% elif ride.status == 'paid' and ride.rating == 0 %}
+                <a href="{{ url_for('rate_driver', ride_id=ride.id) }}" class="btn">Rate Driver</a>
+            {% endif %}
+            <a href="{{ url_for('customer_dashboard') }}" class="btn">Back to Dashboard</a>
+        {% else %}
+            <a href="{{ url_for('driver_dashboard') }}" class="btn">Back to Dashboard</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

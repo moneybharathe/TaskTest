@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Manage Categories</h1>
+    <a href="{{ url_for('new_category') }}" class="btn btn-success">Add New Category</a>
+</div>
+
+{% if categories %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Products</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category.id }}</td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description }}</td>
+                <td>{{ category.products|length }}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('products', category=category.id) }}" class="btn btn-sm btn-info">View Products</a>
+                        <a href="{{ url_for('update_category', category_id=category.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal-{{ category.id }}">
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Delete Modal for each category -->
+{% for category in categories %}
+<div class="modal fade" id="deleteModal-{{ category.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel-{{ category.id }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel-{{ category.id }}">Delete Category?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the category "{{ category.name }}"?
+                {% if category.products|length > 0 %}
+                <p class="text-danger">Warning: This category contains {{ category.products|length }} product(s). Deleting it may affect these products.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_category', category_id=category.id) }}" method="POST">
+                    <input class="btn btn-danger" type="submit" value="Delete">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="alert alert-info">
+    No categories found. Create your first category to get started.
+</div>
+{% endif %}
+{% endblock %}

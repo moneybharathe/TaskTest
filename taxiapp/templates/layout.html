@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxi Booking System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-taxi"></i> Taxi Booking System</h1>
+    </div>
+    
+    <div class="nav">
+        <ul>
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            
+            {% if session.logged_in %}
+                {% if session.user_type == 'customer' %}
+                    <li><a href="{{ url_for('customer_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('book_ride') }}">Book a Ride</a></li>
+                {% elif session.user_type == 'driver' %}
+                    <li><a href="{{ url_for('driver_dashboard') }}">Dashboard</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('logout') }}">Logout ({{ session.name }})</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login', user_type='customer') }}">Customer Login</a></li>
+                <li><a href="{{ url_for('login', user_type='driver') }}">Driver Login</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <footer>
+        <p>&copy; 2025 Taxi Booking System</p>
+    </footer>
+    
+    <script></script>
+</body>
+</html>

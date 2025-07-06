@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="text-align: center;">
+        <div class="taxi-icon">
+            <i class="fas fa-taxi" style="font-size: 72px;"></i>
+        </div>
+        <h1>Welcome to the Taxi Booking System</h1>
+        <p>A simple platform for booking taxis and managing rides</p>
+    </div>
+    
+    <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+        <div class="card" style="width: 45%;">
+            <h2>For Customers</h2>
+            <p>Book a taxi, track your rides, and rate your drivers.</p>
+            <div style="text-align: center;">
+                {% if not session.logged_in or session.user_type != 'customer' %}
+                    <a href="{{ url_for('login', user_type='customer') }}" class="btn">Login as Customer</a>
+                    <a href="{{ url_for('register', user_type='customer') }}" class="btn">Register as Customer</a>
+                {% else %}
+                    <a href="{{ url_for('book_ride') }}" class="btn">Book a Ride</a>
+                    <a href="{{ url_for('customer_dashboard') }}" class="btn">View Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card" style="width: 45%;">
+            <h2>For Drivers</h2>
+            <p>Manage your rides, track earnings, and view customer feedback.</p>
+            <div style="text-align: center;">
+                {% if not session.logged_in or session.user_type != 'driver' %}
+                    <a href="{{ url_for('login', user_type='driver') }}" class="btn">Login as Driver</a>
+                    <a href="{{ url_for('register', user_type='driver') }}" class="btn">Register as Driver</a>
+                {% else %}
+                    <a href="{{ url_for('driver_dashboard') }}" class="btn">View Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <h2>How It Works</h2>
+    <div style="display: flex; justify-content: space-between; text-align: center;">
+        <div>
+            <i class="fas fa-map-marker-alt" style="font-size: 36px; color: #ffc107;"></i>
+            <h3>Set Location</h3>
+            <p>Choose your pickup and drop-off locations</p>
+        </div>
+        <div>
+            <i class="fas fa-car" style="font-size: 36px; color: #ffc107;"></i>
+            <h3>Choose Driver</h3>
+            <p>Select from available drivers</p>
+        </div>
+        <div>
+            <i class="fas fa-money-bill-wave" style="font-size: 36px; color: #ffc107;"></i>
+            <h3>Make Payment</h3>
+            <p>Pay for your ride securely</p>
+        </div>
+        <div>
+            <i class="fas fa-star" style="font-size: 36px; color: #ffc107;"></i>
+            <h3>Rate Experience</h3>
+            <p>Leave feedback about your ride</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

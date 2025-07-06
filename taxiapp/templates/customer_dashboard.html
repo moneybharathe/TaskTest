@@ -1,0 +1,73 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Customer Dashboard</h2>
+    <p>Welcome back, {{ session.name }}!</p>
+    
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="{{ url_for('book_ride') }}" class="btn">Book a New Ride</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Your Ride History</h3>
+    
+    {% if rides %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Driver</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Rating</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ride in rides %}
+                <tr>
+                    <td>{{ ride.ride_date }}</td>
+                    <td>{{ ride.pickup_location }}</td>
+                    <td>{{ ride.dropoff_location }}</td>
+                    <td>{{ ride.driver_name }} ({{ ride.vehicle_model }})</td>
+                    <td>₹{{ "%.2f"|format(ride.amount) }}</td>
+                    <td>{{ ride.status }}</td>
+                    <td>
+                        {% if ride.rating > 0 %}
+                            {% for i in range(1, 6) %}
+                                {% if i <= ride.rating %}
+                                    <span class="star filled">★</span>
+                                {% else %}
+                                    <span class="star">★</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            Not rated
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('view_ride', ride_id=ride.id) }}" class="btn">View Details</a>
+                        
+                        {% if ride.status == 'pending' %}
+                            <form method="post" action="{{ url_for('complete_ride_customer', ride_id=ride.id) }}" style="display: inline;">
+                                <button type="submit" class="btn">Complete Ride</button>
+                            </form>
+                        {% elif ride.status == 'completed' %}
+                            <a href="{{ url_for('payment', ride_id=ride.id) }}" class="btn">Make Payment</a>
+                        {% elif ride.status == 'paid' and ride.rating == 0 %}
+                            <a href="{{ url_for('rate_driver', ride_id=ride.id) }}" class="btn">Rate Driver</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You haven't taken any rides yet. Book your first ride now!</p>
+    {% endif %}
+</div>
+{% endblock %}

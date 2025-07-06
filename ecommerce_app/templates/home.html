@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="jumbotron text-center">
+    <h1>Welcome to E-commerce Platform</h1>
+    <p class="lead">Discover amazing products at competitive prices</p>
+    <hr class="my-4">
+    <p>Browse our categories or search for specific items</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('products') }}" role="button">Shop Now</a>
+    <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('search') }}" role="button">Search</a>
+</div>
+
+<!-- Featured Categories -->
+<section class="mb-5">
+    <h2 class="text-center mb-4">Shop by Category</h2>
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ category.name }}</h5>
+                    <p class="card-text">{{ category.description }}</p>
+                    <a href="{{ url_for('products', category=category.id) }}" class="btn btn-primary">Browse</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section>
+    <h2 class="text-center mb-4">Featured Products</h2>
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="{{ url_for('static', filename='product_pics/' + product.image_file) }}" class="card-img-top" alt="{{ product.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                    
+                    {% if product.current_price != product.base_price %}
+                    <p class="card-text">
+                        <span class="text-muted"><strike>₹{{ product.base_price }}</strike></span>
+                        <span class="text-danger font-weight-bold">₹{{ product.current_price }}</span>
+                    </p>
+                    {% else %}
+                    <p class="card-text">₹{{ product.current_price }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('product', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
